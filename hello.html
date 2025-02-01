@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Compressor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        input, button {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Image Compressor (Less than 100KB)</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="compressImage()">Compress</button>
+    <br>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <a id="downloadLink" style="display:none;">Download Compressed Image</a>
+    
+    <script>
+        function compressImage() {
+            const fileInput = document.getElementById('imageInput');
+            const canvas = document.getElementById('canvas');
+            const downloadLink = document.getElementById('downloadLink');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select an image.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function (event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function () {
+                    const ctx = canvas.getContext('2d');
+                    const scaleFactor = 0.5; 
+                    canvas.width = img.width * scaleFactor;
+                    canvas.height = img.height * scaleFactor;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    let quality = 0.7; 
+                    let compressedDataUrl;
+                    let size;
+
+                    do {
+                        compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                        size = atob(compressedDataUrl.split(',')[1]).length;
+                        quality -= 0.05;
+                    } while (size > 100000 && quality > 0.1);
+
+                    downloadLink.href = compressedDataUrl;
+                    downloadLink.download = 'compressed.jpg';
+                    downloadLink.style.display = 'block';
+                    downloadLink.textContent = 'Download Compressed Image';
+                };
+            };
+        }
+    </script>
+</body>
+</html>
